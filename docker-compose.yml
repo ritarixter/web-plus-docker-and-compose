@@ -1,0 +1,44 @@
+services:
+  frontend:
+    build: ./frontend
+    image: "frontend"
+    container_name: frontend
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+    networks:
+      - kpd_public_network
+  backend:
+    build: ./backend
+    image: "backend"
+    container_name: backend
+    env_file:
+      - ./.env
+    ports:
+      - "4000:3001"
+    depends_on:
+      - postgres
+    networks:
+      - kpd_internal_network
+      - kpd_public_network
+    restart: unless-stopped
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    env_file:
+      - ./.env
+    environment:
+      POSTGRES_PGDATA: /var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - kpd_internal_network
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+networks:
+  kpd_public_network:
+    driver: bridge
+  kpd_internal_network:
+    driver: bridge
+    internal: true
